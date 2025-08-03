@@ -1,0 +1,89 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations
+*/migrations/
+!*/migrations/__init__.py
+
+# Environment variables & secrets
+.env
+*.env
+client_secret.json
+secrets.json
+
+# SQLite database
+*.sqlite3
+
+# Media / static uploads
+/media/
+/staticfiles/
+/static/
+
+# Logs
+*.log
+
+# Local dev settings
+local_settings.py
+
+# VS Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Linux
+*.swp
+*.swo
+
+# Git backup files
+*.orig
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Pytest
+.pytest_cache/
+.cache/
+
+# Test results
+junit-*.xml
+
+# Build and dist
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Docker
+*.pid
+
+# mypy / typing cache
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Celery
+celerybeat-schedule
+
+.env
+README.md

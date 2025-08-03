@@ -1,0 +1,59 @@
+Folder PATH listing for volume OS
+Volume serial number is 501E-8DF9
+C:.
+¦   .env
+¦   .gitignore
+¦   client_secret.json
+¦   db.sqlite3
+¦   manage.py
+¦   requirements.txt
+¦   structure.txt
+¦   
++---backend
+¦   ¦   asgi.py
+¦   ¦   settings.py
+¦   ¦   urls.py
+¦   ¦   wsgi.py
+¦   ¦   __init__.py
+¦   ¦   
+¦   +---__pycache__
+¦           settings.cpython-313.pyc
+¦           urls.cpython-313.pyc
+¦           wsgi.cpython-313.pyc
+¦           __init__.cpython-313.pyc
+¦           
++---core
+¦   ¦   admin.py
+¦   ¦   apps.py
+¦   ¦   integration_registry.py
+¦   ¦   models.py
+¦   ¦   oauth.py
+¦   ¦   tests.py
+¦   ¦   urls.py
+¦   ¦   views.py
+¦   ¦   __init__.py
+¦   ¦   
+¦   +---migrations
+¦   ¦   ¦   0001_initial.py
+¦   ¦   ¦   __init__.py
+¦   ¦   ¦   
+¦   ¦   +---__pycache__
+¦   ¦           0001_initial.cpython-313.pyc
+¦   ¦           __init__.cpython-313.pyc
+¦   ¦           
+¦   +---__pycache__
+¦           admin.cpython-313.pyc
+¦           apps.cpython-313.pyc
+¦           integration_registry.cpython-313.pyc
+¦           models.cpython-313.pyc
+¦           oauth.cpython-313.pyc
+¦           urls.cpython-313.pyc
+¦           views.cpython-313.pyc
+¦           __init__.cpython-313.pyc
+¦           
++---templates
+        base.html
+        chat.html
+        login.html
+        register.html
+        

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}Chat Assistant{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Chat with AI Assistant</h2>
+<p>Welcome, {{ request.user.username }}</p>
+
+<div id="chat-box" class="border rounded p-3 mb-3 bg-white"
+     style="max-height: 50vh; min-height: 200px; overflow-y: auto;">
+</div>
+
+<form id="chat-form" class="mb-3">
+  {% csrf_token %}
+  <div class="input-group">
+    <input type="text" id="user-input" class="form-control" placeholder="Type your message..." required>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </div>
+</form>
+
+{% if has_google %}
+<div class="card my-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">🗓️ Your Calendar Events</h5>
+    <div>
+      <button id="expandAll" class="btn btn-sm btn-outline-primary me-2">
+        <i class="bi bi-arrows-angle-expand"></i> Expand All
+      </button>
+      <button id="collapseAll" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrows-angle-contract"></i> Collapse All
+      </button>
+      <button class="btn btn-sm btn-outline-success ms-2" onclick="fetchCalendarEvents()">🔄 Refresh</button>
+    </div>
+  </div>
+  <div class="card-body p-2" id="calendar-output">
+    <p>Click "Refresh" to load your events.</p>
+  </div>
+</div>
+{% else %}
+  <div class="alert alert-warning">
+    Calendar access is only available for users logged in with Google.
+  </div>
+{% endif %}
+
+<script>
+const chatForm = document.getElementById('chat-form');
+const chatBox = document.getElementById('chat-box');
+const userInput = document.getElementById('user-input');
+
+chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = userInput.value.trim();
+  if (!message) return;
+
+  chatBox.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
+  userInput.value = '';
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const loadingId = `loading-${Date.now()}`;
+  chatBox.innerHTML += `<div id="${loadingId}"><em>AI is typing...</em></div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const response = await fetch("{% url 'chat_api' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ message })
+    });
+
+    const contentType = response.headers.get("content-type");
+    document.getElementById(loadingId).remove();
+
+    if (response.ok && contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      chatBox.innerHTML += `<div><strong>AI:</strong> ${data.response || data.error || 'No valid response.'}</div>`;
+    } else {
+      const text = await response.text();
+      chatBox.innerHTML += `<div><strong>AI:</strong> Server error: ${text}</div>`;
+    }
+
+  } catch (err) {
+    document.getElementById(loadingId).remove();
+    chatBox.innerHTML += `<div><strong>AI:</strong> Request failed. Please try again.</div>`;
+    console.error("Chat fetch error:", err);
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
+
+async function fetchCalendarEvents() {
+  const output = document.getElementById('calendar-output');
+  output.innerHTML = '<div class="text-muted">Loading your events...</div>';
+
+  try {
+    const res = await fetch('/api/calendar/events/');
+    const contentType = res.headers.get("content-type");
+
+    if (!res.ok || !contentType || !contentType.includes("application/json")) {
+      const text = await res.text();
+      throw new Error(`Bad response: ${text}`);
+    }
+
+    const data = await res.json();
+    const now = new Date();
+
+    if (!data.events || !data.events.length) {
+      output.innerHTML = '<div class="text-muted">No upcoming events found.</div>';
+      return;
+    }
+
+    let html = '<div class="accordion" id="eventAccordion">';
+    
+    data.events.forEach((event, index) => {
+      const title = event.summary || 'Untitled Event';
+      const start = new Date(event.start?.dateTime || event.start?.date);
+      const end = new Date(event.end?.dateTime || event.end?.date);
+      const isPast = end < now;
+      const eventLink = event.htmlLink;
+
+      html += `
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-${index}">
+            <button class="accordion-button collapsed ${isPast ? 'text-muted' : ''}" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapse-${index}"
+              aria-expanded="false" aria-controls="collapse-${index}">
+              ${title}
+            </button>
+          </h2>
+          <div id="collapse-${index}" class="accordion-collapse collapse" aria-labelledby="heading-${index}">
+            <div class="accordion-body">
+              <p><strong>Start:</strong> ${start.toLocaleString()}</p>
+              <p><strong>End:</strong> ${end.toLocaleString()}</p>
+              ${eventLink ? `<a href="${eventLink}" class="btn btn-sm btn-outline-secondary" target="_blank">📅 Open in Google Calendar</a>` : ''}
+            </div>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    output.innerHTML = html;
+
+  } catch (err) {
+    output.innerHTML = `<div class="text-danger">Error loading events. Try again later.</div>`;
+    console.error("Calendar fetch error:", err);
+  }
+}
+
+// Expand/Collapse All
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'expandAll') {
+    document.querySelectorAll('.accordion-collapse').forEach(el => {
+      bootstrap.Collapse.getOrCreateInstance(el).show();
+    });
+  }
+  if (e.target.id === 'collapseAll') {
+    document.querySelectorAll('.accordion-collapse').forEach(el => {
+      bootstrap.Collapse.getOrCreateInstance(el).hide();
+    });
+  }
+});
+</script>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+  .accordion-button {
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+
+  .accordion-body p {
+    margin: 0 0 5px;
+  }
+
+  .accordion-button::after {
+    transition: transform 0.3s ease;
+  }
+
+  .accordion-button:not(.collapsed)::after {
+    transform: rotate(180deg);
+  }
+</style>
+{% endblock %}
